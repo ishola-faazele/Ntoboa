@@ -1,0 +1,36 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Ntoboa
+    network: base-sepolia
+    source:
+      address: "0xF5DAea00afc8368BA69572347259dc3225FC9537"
+      abi: Ntoboa
+      startBlock: 20654023
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - DonationReceived
+        - EtherReceived
+        - WithdrawalMade
+        - User
+        - Charity
+      abis:
+        - name: Ntoboa
+          file: ./abis/Ntoboa.json
+      eventHandlers:
+        - event: CharityCreated(indexed uint256,string,string,uint256,address)
+          handler: handleCharityCreated
+        - event: DonationReceived(indexed uint256,indexed address,uint256)
+          handler: handleDonationReceived
+        - event: EtherReceived(address,uint256)
+          handler: handleEtherReceived
+        - event: WithdrawalMade(indexed uint256,indexed address,uint256)
+          handler: handleWithdrawalMade
+      file: ./src/ntoboa.ts

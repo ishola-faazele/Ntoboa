@@ -1,0 +1,65 @@
+type DonationReceived @entity(immutable: true) {
+  id: Bytes!
+  charity: Charity! # Changed from charityId to reference the Charity entity
+  donor: Bytes! # address
+  amount: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type EtherReceived @entity(immutable: true) {
+  id: Bytes!
+  sender: Bytes! # address
+  amount: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type WithdrawalMade @entity(immutable: true) {
+  id: Bytes!
+  charity: Charity! # Changed from charityId to reference the Charity entity
+  owner: Bytes! # address
+  amount: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type User @entity {
+  id: Bytes! # Address of the user
+  totalDonationsMade: BigInt! # Total ETH donated
+  totalDonationsReceived: BigInt! # Total ETH received
+  totalCharitiesCreated: Int! # Number of charities created by the user
+  totalCharitiesContributedTo: Int! # Number of distinct charities the user has contributed to
+  highestDonation: BigInt! # Highest single donation
+  averageDonation: BigDecimal! # Average donation amount
+}
+
+type Charity @entity {
+  id: Int8!
+  # internal_id: BigInt! # uint256
+  name: String! # string
+  description: String! # string
+  target: BigInt! # uint256
+  owner: Bytes! # address
+  createdAtBlockNumber: BigInt!
+  createdAtTimestamp: BigInt!
+  creationTxHash: Bytes!
+  
+  # Stats
+  amountRaised: BigInt! # Total ETH raised
+  totalDonations: Int! # Number of donations received
+  highestDonation: BigInt! # Highest single donation
+  averageDonation: BigDecimal! # Average donation amount
+  lastDonationTimestamp: BigInt! # Timestamp of the last donation
+  
+  # Track donation IDs explicitly
+  recentDonationIds: [String!]!
+  largestDonationIds: [String!]!
+  
+  # Derived relationships - now with correct reference
+  recentDonations: [DonationReceived!]! @derivedFrom(field: "charity")
+  withdrawals: [WithdrawalMade!]! @derivedFrom(field: "charity")
+}

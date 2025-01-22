@@ -1,0 +1,8 @@
+{
+  "base-sepolia": {
+    "Ntoboa": {
+      "address": "0xF5DAea00afc8368BA69572347259dc3225FC9537",
+      "startBlock": 20654023
+    }
+  }
+}
