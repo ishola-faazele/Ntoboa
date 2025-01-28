@@ -14,7 +14,7 @@ import {
   EtherReceived,
   WithdrawalMade,
   User,
-  Charity
+  Charity,
 } from "../generated/schema";
 import { BigInt, BigDecimal, Bytes } from "@graphprotocol/graph-ts";
 
@@ -37,10 +37,10 @@ function getOrCreateUser(userId: Bytes): User {
   return user;
 }
 
-function getOrCreateCharity(charityId: BigInt): Charity {
-  let charity = Charity.load(charityId.toString());
+function getOrCreateCharity(charityId: Bytes): Charity {
+  let charity = Charity.load(charityId);
   if (!charity) {
-    charity = new Charity(charityId.toString());
+    charity = new Charity(charityId);
     // charity.internal_id = charityId;
     charity.amountRaised = BigInt.fromI32(0);
     charity.totalDonations = 0;
@@ -55,9 +55,7 @@ function getOrCreateCharity(charityId: BigInt): Charity {
 }
 
 export function handleCharityCreated(event: CharityCreatedEvent): void {
-  let charity = new Charity(event.params.id.toString());
-  
-  // charity.internal_id = event.params.id;
+  let charity = new Charity(event.params.id);
   charity.name = event.params.name;
   charity.description = event.params.description;
   charity.target = event.params.target;
@@ -65,7 +63,7 @@ export function handleCharityCreated(event: CharityCreatedEvent): void {
   charity.createdAtBlockNumber = event.block.number;
   charity.createdAtTimestamp = event.block.timestamp;
   charity.creationTxHash = event.transaction.hash;
-  
+
   // Initialize statistics
   charity.amountRaised = BigInt.fromI32(0);
   charity.totalDonations = 0;
@@ -74,7 +72,7 @@ export function handleCharityCreated(event: CharityCreatedEvent): void {
   charity.lastDonationTimestamp = BigInt.fromI32(0);
   charity.recentDonationIds = [];
   charity.largestDonationIds = [];
-  
+
   charity.save();
 
   let user = getOrCreateUser(event.params.owner);
@@ -85,9 +83,9 @@ export function handleCharityCreated(event: CharityCreatedEvent): void {
 export function handleDonationReceived(event: DonationReceivedEvent): void {
   let donationId = event.transaction.hash.concatI32(event.logIndex.toI32());
   let entity = new DonationReceived(donationId);
-  
-  entity.charity = event.params.charityId.toString(); 
-  entity.donor = event.params.donor; 
+
+  entity.charity = event.params.charityId;
+  entity.donor = event.params.donor;
   entity.amount = event.params.amount;
   entity.blockNumber = event.block.number;
   entity.blockTimestamp = event.block.timestamp;
@@ -98,13 +96,17 @@ export function handleDonationReceived(event: DonationReceivedEvent): void {
   let donor = getOrCreateUser(event.params.donor);
   donor.totalDonationsMade = donor.totalDonationsMade.plus(event.params.amount);
 
-  if (donor.highestDonation.equals(BigInt.fromI32(0)) || event.params.amount.gt(donor.highestDonation)) {
+  if (
+    donor.highestDonation.equals(BigInt.fromI32(0)) ||
+    event.params.amount.gt(donor.highestDonation)
+  ) {
     donor.highestDonation = event.params.amount;
   }
 
   let totalDonations = donor.totalDonationsMade;
   let totalContributions = donor.totalCharitiesContributedTo + 1;
-  donor.averageDonation = totalDonations.toBigDecimal()
+  donor.averageDonation = totalDonations
+    .toBigDecimal()
     .div(BigDecimal.fromString(totalContributions.toString()));
 
   donor.totalCharitiesContributedTo += 1;
@@ -116,13 +118,17 @@ export function handleDonationReceived(event: DonationReceivedEvent): void {
   charity.totalDonations += 1;
 
   // Update highest donation
-  if (charity.highestDonation.equals(BigInt.fromI32(0)) || event.params.amount.gt(charity.highestDonation)) {
+  if (
+    charity.highestDonation.equals(BigInt.fromI32(0)) ||
+    event.params.amount.gt(charity.highestDonation)
+  ) {
     charity.highestDonation = event.params.amount;
   }
 
   // Update average donation
   let totalDonationsBigInt = BigInt.fromI32(charity.totalDonations);
-  charity.averageDonation = charity.amountRaised.toBigDecimal()
+  charity.averageDonation = charity.amountRaised
+    .toBigDecimal()
     .div(totalDonationsBigInt.toBigDecimal());
 
   // Update last donation timestamp
@@ -139,11 +145,18 @@ export function handleDonationReceived(event: DonationReceivedEvent): void {
   // Update largest donations
   let largestDonations = charity.largestDonationIds;
   let shouldAdd = largestDonations.length < TOP_DONATIONS_COUNT;
-  
+
   if (!shouldAdd) {
     // Check if this donation is larger than the smallest in our top list
-    let smallestTopDonation = DonationReceived.load(Bytes.fromHexString(largestDonations[largestDonations.length - 1]) as Bytes);
-    if (smallestTopDonation && event.params.amount.gt(smallestTopDonation.amount)) {
+    let smallestTopDonation = DonationReceived.load(
+      Bytes.fromHexString(
+        largestDonations[largestDonations.length - 1]
+      ) as Bytes
+    );
+    if (
+      smallestTopDonation &&
+      event.params.amount.gt(smallestTopDonation.amount)
+    ) {
       shouldAdd = true;
     }
   }
@@ -151,7 +164,7 @@ export function handleDonationReceived(event: DonationReceivedEvent): void {
   if (shouldAdd) {
     largestDonations.push(donationId.toHexString());
     // Sort by amount in descending order
-    largestDonations.sort((a, b)  => {
+    largestDonations.sort((a, b) => {
       let donationA = DonationReceived.load(Bytes.fromHexString(a) as Bytes);
       let donationB = DonationReceived.load(Bytes.fromHexString(b) as Bytes);
       if (!donationA || !donationB) return 0;
@@ -183,7 +196,7 @@ export function handleWithdrawalMade(event: WithdrawalMadeEvent): void {
   let entity = new WithdrawalMade(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   );
-  entity.charity = event.params.charityId.toString();
+  entity.charity = event.params.charityId;
   entity.owner = event.params.owner;
   entity.amount = event.params.amount;
   entity.blockNumber = event.block.number;
@@ -193,7 +206,9 @@ export function handleWithdrawalMade(event: WithdrawalMadeEvent): void {
 
   // Update owner's profile
   let owner = getOrCreateUser(event.params.owner);
-  owner.totalDonationsReceived = owner.totalDonationsReceived.plus(event.params.amount);
+  owner.totalDonationsReceived = owner.totalDonationsReceived.plus(
+    event.params.amount
+  );
   owner.save();
 
   // Note: Commented out charity amount adjustment as per original code

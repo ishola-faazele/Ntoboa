@@ -38,7 +38,7 @@ type User @entity {
 }
 
 type Charity @entity {
-  id: Int8!
+  id: Bytes!
   # internal_id: BigInt! # uint256
   name: String! # string
   description: String! # string
@@ -47,18 +47,17 @@ type Charity @entity {
   createdAtBlockNumber: BigInt!
   createdAtTimestamp: BigInt!
   creationTxHash: Bytes!
-  
+
   # Stats
   amountRaised: BigInt! # Total ETH raised
   totalDonations: Int! # Number of donations received
   highestDonation: BigInt! # Highest single donation
   averageDonation: BigDecimal! # Average donation amount
   lastDonationTimestamp: BigInt! # Timestamp of the last donation
-  
   # Track donation IDs explicitly
   recentDonationIds: [String!]!
   largestDonationIds: [String!]!
-  
+
   # Derived relationships - now with correct reference
   recentDonations: [DonationReceived!]! @derivedFrom(field: "charity")
   withdrawals: [WithdrawalMade!]! @derivedFrom(field: "charity")

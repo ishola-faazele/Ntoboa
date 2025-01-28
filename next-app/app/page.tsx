@@ -14,6 +14,7 @@ import { Heart, Users, TrendingUp, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import CreateCharityModal from "./components/CreateCharityModal";
+import DonateButton from "@/components/DonateButton";
 // Sample data - would typically come from an API or blockchain query
 const featuredCharities = [
   {
@@ -153,6 +154,7 @@ export default function Home() {
                       Learn More
                     </Button>
                   </Link>
+                  <DonateButton />
                 </CardFooter>
               </Card>
             ))}

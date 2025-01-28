@@ -8,9 +8,9 @@ dataSources:
     name: Ntoboa
     network: base-sepolia
     source:
-      address: "0xF5DAea00afc8368BA69572347259dc3225FC9537"
+      address: "0x17e4BF3ecDdf156B239e47e5829d655133ed7C4C"
       abi: Ntoboa
-      startBlock: 20654023
+      startBlock: 21133640
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -25,12 +25,12 @@ dataSources:
         - name: Ntoboa
           file: ./abis/Ntoboa.json
       eventHandlers:
-        - event: CharityCreated(indexed uint256,string,string,uint256,address)
+        - event: CharityCreated(indexed bytes32,string,string,uint256,address)
           handler: handleCharityCreated
-        - event: DonationReceived(indexed uint256,indexed address,uint256)
+        - event: DonationReceived(indexed bytes32,indexed address,uint256)
           handler: handleDonationReceived
         - event: EtherReceived(address,uint256)
           handler: handleEtherReceived
-        - event: WithdrawalMade(indexed uint256,indexed address,uint256)
+        - event: WithdrawalMade(indexed bytes32,indexed address,uint256)
           handler: handleWithdrawalMade
       file: ./src/ntoboa.ts

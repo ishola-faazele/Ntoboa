@@ -1,11 +1,11 @@
-import { notFound } from 'next/navigation'
+ import { notFound } from 'next/navigation'
 import CharityDetails from './CharityDetails'
 
 // This would typically come from an API or blockchain query
 const charities = [
   { 
     id: 1, 
-    name: 'Save the Oceans', 
+    name: 'Save the  Oceans', 
     description: 'Protecting marine life and ecosystems',
     totalRaised: '10.5 ETH',
     transactions: [

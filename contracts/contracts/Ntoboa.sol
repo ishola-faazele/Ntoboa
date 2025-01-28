@@ -3,14 +3,13 @@ pragma solidity ^0.8.28;
 import "hardhat/console.sol";
 
 error InsufficientBalance(uint balance, uint amount);
-error CharityDoesNotExist(uint id);
+error CharityDoesNotExist(bytes32 id);
 error NotCharityOwner(address caller, address owner);
 error InvalidTarget();
 error ZeroAddress();
 
 contract Ntoboa {
     uint256 public totalAmountRaised;
-    uint256 public nextCharityId;
 
     struct Charity {
         string name;
@@ -21,39 +20,47 @@ contract Ntoboa {
         bool exists;
     }
 
-    mapping(uint256 => Charity) public charities;
+    mapping(bytes32 => Charity) public charities;
 
     event CharityCreated(
-        uint256 indexed id,
+        bytes32 indexed id,
         string name,
         string description,
         uint256 target,
         address owner
     );
     event DonationReceived(
-        uint256 indexed charityId,
+        bytes32 indexed charityId,
         address indexed donor,
         uint256 amount
     );
     event WithdrawalMade(
-        uint256 indexed charityId,
+        bytes32 indexed charityId,
         address indexed owner,
         uint256 amount
     );
     event EtherReceived(address sender, uint256 amount);
 
-    modifier charityExists(uint256 _id) {
+    modifier charityExists(bytes32 _id) {
         if (!charities[_id].exists) {
             revert CharityDoesNotExist(_id);
         }
         _;
     }
 
-    modifier onlyCharityOwner(uint256 _id) {
+    modifier onlyCharityOwner(bytes32 _id) {
         if (charities[_id].owner != msg.sender) {
             revert NotCharityOwner(msg.sender, charities[_id].owner);
         }
         _;
+    }
+
+    function generateCharityId(
+        string calldata name,
+        string calldata description,
+        address owner
+    ) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked(name, description, owner));
     }
 
     function addCharity(
@@ -63,7 +70,7 @@ contract Ntoboa {
     ) external {
         if (_target == 0) revert InvalidTarget();
 
-        uint256 charityId = nextCharityId++;
+        bytes32 charityId = generateCharityId(name, description, msg.sender);
 
         charities[charityId] = Charity({
             name: name,
@@ -77,7 +84,7 @@ contract Ntoboa {
         emit CharityCreated(charityId, name, description, _target, msg.sender);
     }
 
-    function donate(uint256 _id) external payable charityExists(_id) {
+    function donate(bytes32 _id) external payable charityExists(_id) {
         if (msg.value == 0) revert InsufficientBalance(msg.value, 0);
 
         totalAmountRaised += msg.value;
@@ -87,7 +94,7 @@ contract Ntoboa {
     }
 
     function withdraw(
-        uint256 _id
+        bytes32 _id
     ) external charityExists(_id) onlyCharityOwner(_id) {
         Charity storage charity = charities[_id];
         uint256 amount = charity.amountRaised;
@@ -104,7 +111,7 @@ contract Ntoboa {
     }
 
     function getBalanceOf(
-        uint256 _id
+        bytes32 _id
     ) external view charityExists(_id) returns (uint256) {
         return charities[_id].amountRaised;
     }

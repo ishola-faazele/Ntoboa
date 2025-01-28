@@ -1,19 +1,21 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
+import DonateButton from '@/components/DonateButton'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { Heart, Trophy, Clock, DollarSign } from 'lucide-react'
-
-export default function CharityDetails({ charity }: { charity: any }) {
+import { donateToCharity } from '@/lib/contractInteractions';
+import { charityType } from '@/lib/types'
+export default function CharityDetails({ charity }: { charity: charityType }) {
   const [donationAmount, setDonationAmount] = useState('')
 
-  const handleDonate = () => {
-    // TODO: Implement donation logic
-    console.log(`Donating ${donationAmount} ETH to ${charity.name}`)
-  }
+  // const handleDonate = () => {
+  //   // TODO: Implement donation logic
+  //   console.log(`Donating ${donationAmount} ETH to ${charity.name}`)
+  //   donateToCharity(charity.contractInstance, charity.id, donationAmount)
+  // }
 
   // Convert transactions to chart data
   const chartData = charity.transactions.map((tx: any) => ({
@@ -84,13 +86,7 @@ export default function CharityDetails({ charity }: { charity: any }) {
               onChange={(e) => setDonationAmount(e.target.value)}
               className="md:w-64"
             />
-            <Button 
-              onClick={handleDonate}
-              className="bg-blue-600 hover:bg-blue-700"
-              size="lg"
-            >
-              Donate Now
-            </Button>
+            <DonateButton  />
           </div>
         </CardContent>
       </Card>

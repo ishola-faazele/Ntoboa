@@ -21,10 +21,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Image as ImageIcon } from "lucide-react";
-import { contractAddress } from "@/lib/utils";
-import abi from "@/lib/ABI.json";
 import { ethers } from "ethers";
-import { JsonRpcProvider } from "ethers";
+import { initializeContract, addCharity } from "@/lib/contractInteractions";
+import { useContract } from "@/lib/ContractContext";
 interface FormData {
   name: string;
   description: string;
@@ -43,45 +42,41 @@ export default function CreateCharityModal() {
     website: "",
     image: null,
   });
-  const [contract, setContract] = useState<ethers.Contract>();
-  useEffect(() => {
-    const initializeContract = async () => {
-      if (typeof window !== "undefined" && window.ethereum) {
-        const provider = new JsonRpcProvider("http://127.0.0.1:8545");
-        console.log("Provider", provider);
-        const abiArray = (abi as { abi: [] }).abi;
-        console.log("ABI", abiArray);
-        const signer = await provider.getSigner(0);
-        console.log("Signer", signer);
-        const contractInstance = new ethers.Contract(
-          contractAddress,
-          abiArray,
-          signer
-        );
-        console.log(contractInstance);
-        setContract(contractInstance);
-      }
-    };
-    initializeContract();
-  }, []);
+  const contract = useContract();
+  // useEffect(() => {
+  //   const loadContract = async () => {
+  //     try {
+  //       const contractInstance = await initializeContract();
+  //       setContract(contractInstance);
+  //     } catch (error) {
+  //       if (error instanceof Error) {
+  //         console.error("Failed to initialize contract:", error.message);
+  //       } else {
+  //         console.error("Unknown error occurred:", error);
+  //       }
+  //     }
+  //   };
+  //   loadContract();
+  // }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+  
     if (parseFloat(formData.goal) <= 0) {
       alert("The fundraising goal must be greater than 0.");
-      return;
+      return; 
     }
     setIsLoading(true);
 
     try {
       if (contract) {
-        console.log("Contract address:", contractAddress);
         console.log("Function arguments:", {
           name: formData.name,
           description: formData.description,
           goal: ethers.parseEther(formData.goal),
         });
-        const tx = await contract.addCharity(
+        const tx = await addCharity(
+          contract,
           formData.name,
           formData.description,
           ethers.parseEther(formData.goal)
@@ -102,7 +97,7 @@ export default function CreateCharityModal() {
           image: null,
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       // console.error("Error creating charity:", error);
       console.error("Detailed error:", {
         error,
