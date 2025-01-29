@@ -12,39 +12,49 @@ import {
 } from "@/components/ui/card";
 import { Heart, Users, TrendingUp, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CreateCharityModal from "./components/CreateCharityModal";
 import DonateButton from "@/components/DonateButton";
+import { useQuery } from "@apollo/client";
+import { GET_CHARITIES } from "./lib/apollo-client";
 // Sample data - would typically come from an API or blockchain query
-const featuredCharities = [
-  {
-    id: 1,
-    name: "Save the Oceans",
-    description: "Protecting marine life and ecosystems",
-    raisedAmount: "12.5 ETH",
-    supporters: 156,
-    category: "Environment",
-  },
-  {
-    id: 2,
-    name: "Education for All",
-    description: "Providing access to quality education worldwide",
-    raisedAmount: "8.2 ETH",
-    supporters: 98,
-    category: "Education",
-  },
-  {
-    id: 3,
-    name: "Hunger Relief",
-    description: "Fighting hunger and malnutrition in communities",
-    raisedAmount: "15.7 ETH",
-    supporters: 203,
-    category: "Food",
-  },
-];
+// const featuredCharities = [
+//   // {
+//   //   id: 1,
+//   //   name: "Save the Oceans",
+//   //   description: "Protecting marine life and ecosystems",
+//   //   raisedAmount: "12.5 ETH",
+//   //   supporters: 156,
+//   //   category: "Environment",
+//   // },
+//   // {
+//   //   id: 2,
+//   //   name: "Education for All",
+//   //   description: "Providing access to quality education worldwide",
+//   //   raisedAmount: "8.2 ETH",
+//   //   supporters: 98,
+//   //   category: "Education",
+//   // },
+//   // {
+//   //   id: 3,
+//   //   name: "Hunger Relief",
+//   //   description: "Fighting hunger and malnutrition in communities",
+//   //   raisedAmount: "15.7 ETH",
+//   //   supporters: 203,
+//   //   category: "Food",
+//   // },
+// ];
 
 export default function Home() {
+  const [featuredCharities, setFeaturedCharities] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  
+  const { loading, error, data } = useQuery(GET_CHARITIES);
+  useEffect(() => {
+    if (data) {
+      setFeaturedCharities([...featuredCharities, ...data.charities]);
+    } 
+  }, [data]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
