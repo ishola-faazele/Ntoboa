@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/select";
 import { Image as ImageIcon } from "lucide-react";
 import { ethers } from "ethers";
-import { initializeContract, addCharity } from "@/lib/contractInteractions";
 import { useContract } from "@/lib/ContractContext";
 interface FormData {
   name: string;
@@ -32,6 +31,7 @@ interface FormData {
   website: string;
   image: File | null;
 }
+
 export default function CreateCharityModal() {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
@@ -42,29 +42,14 @@ export default function CreateCharityModal() {
     website: "",
     image: null,
   });
-  const contract = useContract();
-  // useEffect(() => {
-  //   const loadContract = async () => {
-  //     try {
-  //       const contractInstance = await initializeContract();
-  //       setContract(contractInstance);
-  //     } catch (error) {
-  //       if (error instanceof Error) {
-  //         console.error("Failed to initialize contract:", error.message);
-  //       } else {
-  //         console.error("Unknown error occurred:", error);
-  //       }
-  //     }
-  //   };
-  //   loadContract();
-  // }, []);
+  const { contract, addCharity } = useContract();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     if (parseFloat(formData.goal) <= 0) {
       alert("The fundraising goal must be greater than 0.");
-      return; 
+      return;
     }
     setIsLoading(true);
 
@@ -76,7 +61,6 @@ export default function CreateCharityModal() {
           goal: ethers.parseEther(formData.goal),
         });
         const tx = await addCharity(
-          contract,
           formData.name,
           formData.description,
           ethers.parseEther(formData.goal)
@@ -84,8 +68,8 @@ export default function CreateCharityModal() {
         console.log("Transaction:", tx);
 
         // Wait for transaction to be mined
-        const receipt = await tx.wait();
-        console.log("Transaction receipt:", receipt);
+        // const receipt = await tx.wait();
+        // console.log("Transaction receipt:", receipt);
 
         // Reset form after successful creation
         setFormData({

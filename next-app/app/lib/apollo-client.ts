@@ -21,7 +21,7 @@ export const GET_CHARITY_BY_ID = gql`
 
 export const GET_CHARITIES = gql`
   query GetCharities {
-    charities(first: 3) {
+    charities(first: 4 ) {
       id
       name
       description

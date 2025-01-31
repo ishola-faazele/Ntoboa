@@ -1,8 +1,23 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { ethers } from "ethers";
-import { initializeContract } from "./contractInteractions";
+import { ethers, BigNumberish } from "ethers";
+import {
+  initializeContract,
+  addCharityInteraction,
+  withdrawFromCharityInteraction,
+  donateToCharityInteraction,
+  getBalanceOfCharityInteraction,
+} from "./contractInteractions";
 export interface ContractContextType {
   contract: ethers.Contract | undefined;
+  addCharity: (
+    name: string,
+    description: string,
+    target: BigNumberish
+  ) => Promise<void>;
+
+  withdrawFromCharity: (id: string) => Promise<void>; // `id` is `bytes` in Solidity
+  donateToCharity: (id: string, amount: BigNumberish) => Promise<void>; // `id` is `bytes` in Solidity
+  getBalanceOfCharity: (id: string) => Promise<string>; // `id` is `bytes` in Solidity
 }
 
 const ContractContext = createContext<ContractContextType | undefined>(
@@ -12,7 +27,9 @@ const ContractContext = createContext<ContractContextType | undefined>(
 export const ContractProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [contract, setContract] = useState<ethers.Contract | undefined>(undefined);
+  const [contract, setContract] = useState<ethers.Contract | undefined>(
+    undefined
+  );
 
   useEffect(() => {
     const loadContract = async () => {
@@ -30,8 +47,42 @@ export const ContractProvider: React.FC<{ children: React.ReactNode }> = ({
     loadContract();
   }, []);
 
+  const addCharity = async (
+    name: string,
+    description: string,
+    target: BigNumberish
+  ) => {
+    if (!contract) throw new Error("Contract is not initialized.");
+    // const tx = await contract.addCharity(name, description, target);
+    // await tx.wait();
+    // console.log("Charity added:", tx);
+    return addCharityInteraction(contract, name, description, target);
+  };
+  const withdrawFromCharity = async (id: string) => {
+    if (!contract) throw new Error("Contract is not initialized.");
+    return withdrawFromCharityInteraction(contract, id);
+  };
+
+  const donateToCharity = async (id: string, amount: BigNumberish) => {
+    if (!contract) throw new Error("Contract is not initialized.");
+    return donateToCharityInteraction(contract, id, amount);
+  };
+
+  const getBalanceOfCharity = async (id: string) => {
+    if (!contract) throw new Error("Contract is not initialized.");
+    return getBalanceOfCharityInteraction(contract, id);
+  };
+
+  const contextValue: ContractContextType = {
+    contract,
+    addCharity,
+    withdrawFromCharity,
+    donateToCharity,
+    getBalanceOfCharity,
+  };
+
   return (
-    <ContractContext.Provider value={{ contract }}>
+    <ContractContext.Provider value={contextValue}>
       {children}
     </ContractContext.Provider>
   );

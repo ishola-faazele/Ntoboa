@@ -7,54 +7,30 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-  CardContent,
   CardFooter,
+  CardContent,
 } from "@/components/ui/card";
 import { Heart, Users, TrendingUp, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import CreateCharityModal from "./components/CreateCharityModal";
-import DonateButton from "@/components/DonateButton";
 import { useQuery } from "@apollo/client";
 import { GET_CHARITIES } from "./lib/apollo-client";
-// Sample data - would typically come from an API or blockchain query
-// const featuredCharities = [
-//   // {
-//   //   id: 1,
-//   //   name: "Save the Oceans",
-//   //   description: "Protecting marine life and ecosystems",
-//   //   raisedAmount: "12.5 ETH",
-//   //   supporters: 156,
-//   //   category: "Environment",
-//   // },
-//   // {
-//   //   id: 2,
-//   //   name: "Education for All",
-//   //   description: "Providing access to quality education worldwide",
-//   //   raisedAmount: "8.2 ETH",
-//   //   supporters: 98,
-//   //   category: "Education",
-//   // },
-//   // {
-//   //   id: 3,
-//   //   name: "Hunger Relief",
-//   //   description: "Fighting hunger and malnutrition in communities",
-//   //   raisedAmount: "15.7 ETH",
-//   //   supporters: 203,
-//   //   category: "Food",
-//   // },
-// ];
-
+import { charityType } from "./lib/types";
+import DonateButton from "@/components/DonateButton";
 export default function Home() {
-  const [featuredCharities, setFeaturedCharities] = useState([]);
+  const [featuredCharities, setFeaturedCharities] = useState<charityType[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   const { loading, error, data } = useQuery(GET_CHARITIES);
   useEffect(() => {
     if (data) {
-      setFeaturedCharities([...featuredCharities, ...data.charities]);
-    } 
+      setFeaturedCharities([...data.charities]);
+    }
   }, [data]);
+  if (error) {
+    console.log(error);
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
@@ -134,6 +110,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {loading && <p>Loading...</p>}
             {featuredCharities.map((charity) => (
               <Card
                 key={charity.id}
@@ -152,19 +129,19 @@ export default function Home() {
                     </span>
                   </div>
                 </CardHeader>
-                <CardContent>
+                {/* <CardContent>
                   <div className="flex justify-between text-sm text-gray-600">
                     <span>Raised: {charity.raisedAmount}</span>
                     <span>{charity.supporters} Supporters</span>
                   </div>
-                </CardContent>
+                </CardContent> */}
                 <CardFooter>
                   <Link href={`/charity/${charity.id}`} className="w-full">
                     <Button className="w-full" variant="outline">
                       Learn More
                     </Button>
                   </Link>
-                  <DonateButton />
+                  <DonateButton address={String(charity.id)} />
                 </CardFooter>
               </Card>
             ))}

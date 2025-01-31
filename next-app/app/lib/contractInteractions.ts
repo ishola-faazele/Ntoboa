@@ -1,16 +1,14 @@
 import { ethers, BigNumberish } from "ethers";
 export const BASE_SEPOLIA_CONTRACT_ADDRESS =
-  "0xF5DAea00afc8368BA69572347259dc3225FC9537";
+  "0x17e4BF3ecDdf156B239e47e5829d655133ed7C4C";
 export const HARDHAT_CONTRACT_ADDRESS =
   "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 import ABI from "@/lib/ABI.json";
-import { ContractContextType } from "./ContractContext";
 export const initializeContract = async (): Promise<
   ethers.Contract | undefined
 > => {
   // const provider = new ethers.BrowserProvider(window.ethereum);
   if (typeof window !== "undefined" && window.ethereum) {
-    // const rpcProvider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
     const contractInstance = new ethers.Contract(
@@ -24,8 +22,8 @@ export const initializeContract = async (): Promise<
   throw new Error("MetaMask is not available.");
 };
 
-export const addCharity = async (
-  contractInstance: ContractContextType,
+export const addCharityInteraction = async (
+  contractInstance: ethers.Contract,
   name: string,
   description: string,
   target: BigNumberish
@@ -36,6 +34,7 @@ export const addCharity = async (
 
   try {
     const tx = await contractInstance.addCharity(name, description, target);
+    await tx.wait(); // Wait for the transaction to be mined
     console.log("Transaction:", tx);
     return tx;
   } catch (error) {
@@ -43,15 +42,16 @@ export const addCharity = async (
     throw error; // Re-throw error for the caller to handle
   }
 };
-export const withdrawFromCharity = async (
+export const withdrawFromCharityInteraction = async (
   contractInstance: ethers.Contract,
-  id: number
+  id: string
 ) => {
   if (!contractInstance) {
     throw new Error("Contract instance is required.");
   }
   try {
     const tx = await contractInstance.withdraw(id);
+    await tx.wait();
     console.log("Transaction:", tx);
     return tx;
   } catch (error) {
@@ -60,16 +60,19 @@ export const withdrawFromCharity = async (
   }
 };
 
-export const donateToCharity = async (
+export const donateToCharityInteraction = async (
   contractInstance: ethers.Contract,
-  id: number,
+  id: string,
   amount: BigNumberish
 ) => {
   if (!contractInstance) {
     throw new Error("Contract instance is required.");
   }
   try {
-    const tx = await contractInstance.donate(id, { value: amount });
+    const tx = await contractInstance.donate(id, {
+      value: ethers.parseEther(String(amount)),
+    });
+    await tx.wait(); // Wait for the transaction to be mined
     console.log("Transaction:", tx);
     return tx;
   } catch (error) {
@@ -78,9 +81,9 @@ export const donateToCharity = async (
   }
 };
 
-export const getBalanceOfCharity = async (
+export const getBalanceOfCharityInteraction = async (
   contractInstance: ethers.Contract,
-  id: number
+  id: string
 ) => {
   if (!contractInstance) {
     throw new Error("Contract instance is required.");
